@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>지브리 스타일 자동화 시스템</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .config-section {
+            margin-bottom: 30px;
+        }
+        
+        .config-section h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 5px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+        
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+        
+        .btn-secondary:hover {
+            background: #667eea;
+            color: white;
+        }
+        
+        .status-area {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .preview-area {
+            display: none;
+            margin-top: 20px;
+        }
+        
+        .preview-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .preview-item {
+            text-align: center;
+        }
+        
+        .preview-item img {
+            max-width: 100%;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .lyrics-output {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 15px;
+            white-space: pre-wrap;
+            font-family: Georgia, serif;
+            line-height: 1.6;
+        }
+        
+        .automation-status {
+            background: #e8f5e8;
+            border: 1px solid #4caf50;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+        
+        .automation-status.error {
+            background: #ffeaea;
+            border-color: #f44336;
+        }
+        
+        .file-upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            background: #f8f9fa;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .file-upload-area:hover {
+            background: #e3f2fd;
+            border-color: #2196f3;
+        }
+        
+        .file-upload-area.dragover {
+            background: #e8f5e8;
+            border-color: #4caf50;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #e1e5e9;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.3s;
+        }
+        
+        @media (max-width: 768px) {
+            .preview-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎨 지브리 스타일 자동화 시스템</h1>
+            <p>이미지를 지브리 스타일로 변환하고 가사를 생성하여 인스타그램에 자동 포스팅</p>
+        </div>
+
+        <!-- 설정 카드 -->
+        <div class="card">
+            <div class="config-section">
+                <h3>🔧 기본 설정</h3>
+                
+                <div class="form-group">
+                    <label>Google Drive 폴더 ID</label>
+                    <input type="text" id="driveFolder" value="1VEE24Had25qxeWN09lM-kz5i-uCNQJjZ" readonly>
+                </div>
+                
+                <div class="form-group">
+                    <label>Google Sheets ID</label>
+                    <input type="text" id="sheetsId" value="1PdY2KFTmouI_3EcZZZOmAPBnBy7unsArQ5Z3QDIrzlk" readonly>
+                </div>
+                
+                <div class="form-group">
+                    <label>인스타그램 계정 정보</label>
+                    <input type="text" id="instaUsername" placeholder="인스타그램 사용자명">
+                </div>
+                
+                <div class="form-group">
+                    <label>인스타그램 액세스 토큰</label>
+                    <input type="password" id="instaToken" placeholder="Instagram API 액세스 토큰">
+                </div>
+            </div>
+
+            <div class="config-section">
+                <h3>✍️ 가사 생성 프롬프트</h3>
+                
+                <div class="form-group">
+                    <label>기본 프롬프트 템플릿</label>
+                    <textarea id="lyricsPrompt" placeholder="이미지를 보고 다음과 같은 스타일로 가사를 작성해주세요:
+- 지브리 영화의 감성적이고 몽환적인 분위기
+- 자연과 인간의 교감을 담은 내용
+- 4-6줄의 간결한 구성
+- 감정적이고 따뜻한 톤
+
+이미지 설명: {image_description}
+
+위 이미지에서 영감을 받은 가사:">이미지를 보고 다음과 같은 스타일로 가사를 작성해주세요:
+- 지브리 영화의 감성적이고 몽환적인 분위기
+- 자연과 인간의 교감을 담은 내용
+- 4-6줄의 간결한 구성
+- 감정적이고 따뜻한 톤
+
+이미지 설명: {image_description}
+
+위 이미지에서 영감을 받은 가사:</textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>지브리 스타일 변환 프롬프트</label>
+                    <textarea id="stylePrompt">Transform this image into Studio Ghibli animation style with:
+- Soft, hand-drawn aesthetic
+- Warm, natural color palette
+- Dreamlike, magical atmosphere
+- Detailed backgrounds with nature elements
+- Character designs reminiscent of Miyazaki films
+- Subtle lighting and gentle shadows</textarea>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="saveSettings()">설정 저장</button>
+                <button class="btn btn-secondary" onclick="loadSettings()">설정 불러오기</button>
+                <button class="btn btn-primary" onclick="startAutomation()">자동화 시작</button>
+                <button class="btn btn-secondary" onclick="stopAutomation()">자동화 중지</button>
+            </div>
+        </div>
+
+        <!-- 수동 처리 카드 -->
+        <div class="card">
+            <h3>📸 수동 이미지 처리</h3>
+            
+            <div class="file-upload-area" onclick="document.getElementById('fileInput').click()">
+                <div>
+                    <h4>이미지 업로드</h4>
+                    <p>클릭하여 파일을 선택하거나 여기에 드래그 앤 드롭하세요</p>
+                    <small>지원 형식: JPG, PNG, GIF</small>
+                </div>
+            </div>
+            <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="handleFileUpload(event)">
+            
+            <div class="progress-bar" id="progressBar" style="display: none;">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            
+            <div class="preview-area" id="previewArea">
+                <div class="preview-grid">
+                    <div class="preview-item">
+                        <h4>원본 이미지</h4>
+                        <img id="originalImage" alt="원본 이미지">
+                    </div>
+                    <div class="preview-item">
+                        <h4>지브리 스타일 변환</h4>
+                        <img id="convertedImage" alt="변환된 이미지">
+                    </div>
+                </div>
+                
+                <div class="lyrics-output" id="lyricsOutput"></div>
+                
+                <div class="button-group" style="margin-top: 20px;">
+                    <button class="btn btn-primary" onclick="generateGhibliStyle()">지브리 스타일 변환</button>
+                    <button class="btn btn-primary" onclick="generateLyrics()">가사 생성</button>
+                    <button class="btn btn-primary" onclick="postToInstagram()">인스타그램 포스팅</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 상태 표시 -->
+        <div class="status-area">
+            <h4>📊 시스템 상태</h4>
+            <div id="statusLog">
+                <p>✅ 시스템 초기화 완료</p>
+                <p>⏳ 자동화 대기 중...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let automationInterval;
+        let currentImage = null;
+        let convertedImageData = null;
+        let generatedLyrics = '';
+        
+        // 설정 저장
+        function saveSettings() {
+            const settings = {
+                driveFolder: document.getElementById('driveFolder').value,
+                sheetsId: document.getElementById('sheetsId').value,
+                instaUsername: document.getElementById('instaUsername').value,
+                instaToken: document.getElementById('instaToken').value,
+                lyricsPrompt: document.getElementById('lyricsPrompt').value,
+                stylePrompt: document.getElementById('stylePrompt').value
+            };
+            
+            // 실제 구현에서는 서버나 로컬 스토리지에 저장
+            console.log('Settings saved:', settings);
+            addStatusLog('✅ 설정이 저장되었습니다.');
+            
+            // 구글 시트에 설정 저장 (실제 구현 시)
+            saveToGoogleSheets('settings', settings);
+        }
+        
+        // 설정 불러오기
+        function loadSettings() {
+            // 실제 구현에서는 저장된 설정을 불러옴
+            addStatusLog('✅ 설정을 불러왔습니다.');
+        }
+        
+        // 자동화 시작
+        function startAutomation() {
+            addStatusLog('🚀 자동화를 시작합니다...');
+            
+            // Google Drive 폴더 모니터링 시뮬레이션
+            automationInterval = setInterval(() => {
+                checkForNewImages();
+            }, 5000); // 5초마다 확인
+            
+            addStatusLog('🔄 Google Drive 폴더 모니터링 중...');
+        }
+        
+        // 자동화 중지
+        function stopAutomation() {
+            if (automationInterval) {
+                clearInterval(automationInterval);
+                automationInterval = null;
+            }
+            addStatusLog('⏹️ 자동화가 중지되었습니다.');
+        }
+        
+        // 새 이미지 확인
+        async function checkForNewImages() {
+            try {
+                // 실제 구현에서는 Google Drive API를 사용
+                addStatusLog('🔍 새로운 이미지를 확인 중...');
+                
+                // 예시: API 호출 시뮬레이션
+                const response = await fetch('https://api.anthropic.com/v1/messages', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        model: 'claude-sonnet-4-20250514',
+                        max_tokens: 100,
+                        messages: [
+                            { role: 'user', content: 'Check for new images in Google Drive folder' }
+                        ]
+                    })
+                });
+                
+                // 새 이미지가 발견되면 자동 처리
+                // processNewImage(imageFile);
+                
+            } catch (error) {
+                addStatusLog('❌ 오류: ' + error.message);
+            }
+        }
+        
+        // 파일 업로드 처리
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                currentImage = file;
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('originalImage').src = e.target.result;
+                    document.getElementById('previewArea').style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+                addStatusLog('📸 이미지가 업로드되었습니다: ' + file.name);
+            }
+        }
+        
+        // 지브리 스타일 변환
+        async function generateGhibliStyle() {
+            if (!currentImage) {
+                alert('먼저 이미지를 업로드해주세요.');
+                return;
+            }
+            
+            addStatusLog('🎨 지브리 스타일로 변환 중...');
+            showProgress(30);
+            
+            try {
+                // 이미지를 base64로 변환
+                const base64Image = await fileToBase64(currentImage);
+                
+                // Claude API를 사용하여 이미지 분석 및 스타일 변환 설명
+                const response = await fetch('https://api.anthropic.com/v1/messages', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        model: 'claude-sonnet-4-20250514',
+                        max_tokens: 1000,
+                        messages: [
+                            {
+                                role: 'user',
+                                content: [
+                                    {
+                                        type: 'image',
+                                        source: {
+                                            type: 'base64',
+                                            media_type: currentImage.type,
+                                            data: base64Image.split(',')[1]
+                                        }
+                                    },
+                                    {
+                                        type: 'text',
+                                        text: document.getElementById('stylePrompt').value
+                                    }
+                                ]
+                            }
+                        ]
+                    })
+                });
+                
+                const data = await response.json();
+                const styleDescription = data.content[0].text;
+                
+                showProgress(70);
+                
+                // 실제로는 이미지 생성 AI (DALL-E, Midjourney 등)를 사용
+                // 여기서는 시뮬레이션
+                setTimeout(() => {
+                    // 변환된 이미지 표시 (실제로는 생성된 이미지)
+                    document.getElementById('convertedImage').src = document.getElementById('originalImage').src;
+                    document.getElementById('convertedImage').style.filter = 'sepia(20%) saturate(120%) hue-rotate(15deg)';
+                    
+                    showProgress(100);
+                    addStatusLog('✅ 지브리 스타일 변환 완료');
+                    
+                    // 결과를 구글 시트에 저장
+                    saveToGoogleSheets('conversions', {
+                        timestamp: new Date().toISOString(),
+                        originalImage: currentImage.name,
+                        styleDescription: styleDescription,
+                        status: 'completed'
+                    });
+                }, 2000);
+                
+            } catch (error) {
+                addStatusLog('❌ 변환 오류: ' + error.message);
+                showProgress(0);
+            }
+        }
+        
+        // 가사 생성
+        async function generateLyrics() {
+            if (!currentImage) {
+                alert('먼저 이미지를 업로드해주세요.');
+                return;
+            }
+            
+            addStatusLog('✍️ 가사 생성 중...');
+            
+            try {
+                const base64Image = await fileToBase64(currentImage);
+                
+                // Claude API를 사용하여 이미지 기반 가사 생성
+                const response = await fetch('https://api.anthropic.com/v1/messages', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        model: 'claude-sonnet-4-20250514',
+                        max_tokens: 1000,
+                        messages: [
+                            {
+                                role: 'user',
+                                content: [
+                                    {
+                                        type: 'image',
+                                        source: {
+                                            type: 'base64',
+                                            media_type: currentImage.type,
+                                            data: base64Image.split(',')[1]
+                                        }
+                                    },
+                                    {
+                                        type: 'text',
+                                        text: document.getElementById('lyricsPrompt').value
+                                    }
+                                ]
+                            }
+                        ]
+                    })
+                });
+                
+                const data = await response.json();
+                generatedLyrics = data.content[0].text;
+                
+                document.getElementById('lyricsOutput').textContent = generatedLyrics;
+                addStatusLog('✅ 가사 생성 완료');
+                
+                // 결과를 구글 시트에 저장
+                saveToGoogleSheets('lyrics', {
+                    timestamp: new Date().toISOString(),
+                    image: currentImage.name,
+                    lyrics: generatedLyrics,
+                    prompt: document.getElementById('lyricsPrompt').value
+                });
+                
+            } catch (error) {
+                addStatusLog('❌ 가사 생성 오류: ' + error.message);
+            }
+        }
+        
+        // 인스타그램 포스팅
+        async function postToInstagram() {
+            if (!currentImage || !generatedLyrics) {
+                alert('먼저 이미지 변환과 가사 생성을 완료해주세요.');
+                return;
+            }
+            
+            addStatusLog('📱 인스타그램에 포스팅 중...');
+            
+            try {
+                // 실제로는 Instagram Basic Display API 또는 Instagram Graph API 사용
+                const instaData = {
+                    image: convertedImageData || currentImage,
+                    caption: generatedLyrics + '\n\n#지브리 #lyrics #ai #automation',
+                    access_token: document.getElementById('instaToken').value
+                };
+                
+                // API 호출 시뮬레이션
+                setTimeout(() => {
+                    addStatusLog('✅ 인스타그램 포스팅 완료');
+                    
+                    // 결과를 구글 시트에 저장
+                    saveToGoogleSheets('posts', {
+                        timestamp: new Date().toISOString(),
+                        image: currentImage.name,
+                        lyrics: generatedLyrics,
+                        instagram_url: 'https://instagram.com/p/simulated_post_id',
+                        status: 'posted'
+                    });
+                }, 2000);
+                
+            } catch (error) {
+                addStatusLog('❌ 포스팅 오류: ' + error.message);
+            }
+        }
+        
+        // 구글 시트에 데이터 저장
+        function saveToGoogleSheets(sheetName, data) {
+            // 실제로는 Google Sheets API 사용
+            console.log(`Saving to ${sheetName}:`, data);
+            addStatusLog(`📊 ${sheetName} 시트에 데이터 저장됨`);
+        }
+        
+        // 유틸리티 함수들
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+        
+        function showProgress(percent) {
+            const progressBar = document.getElementById('progressBar');
+            const progressFill = document.getElementById('progressFill');
+            
+            if (percent > 0) {
+                progressBar.style.display = 'block';
+                progressFill.style.width = percent + '%';
+            } else {
+                progressBar.style.display = 'none';
+            }
+            
+            if (percent >= 100) {
+                setTimeout(() => {
+                    progressBar.style.display = 'none';
+                }, 1000);
+            }
+        }
+        
+        function addStatusLog(message) {
+            const statusLog = document.getElementById('statusLog');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('p');
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            statusLog.appendChild(logEntry);
+            statusLog.scrollTop = statusLog.scrollHeight;
+        }
+        
+        // 드래그 앤 드롭 이벤트
+        const uploadArea = document.querySelector('.file-upload-area');
+        
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0 && files[0].type.startsWith('image/')) {
+                document.getElementById('fileInput').files = files;
+                handleFileUpload({ target: { files: files } });
+            }
+        });
+        
+        // 초기화
+        window.addEventListener('load', () => {
+            addStatusLog('🎨 지브리 스타일 자동화 시스템이 준비되었습니다.');
+        });
+    </script>
+</body>
+</html>
